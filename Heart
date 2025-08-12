@@ -1,0 +1,144 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Click the Heart — Surprise</title>
+  <style>
+    :root{
+      --bg:#fff7fb;
+      --heart:#ff004f;
+      --accent:#ff7aa2;
+      --text:#222;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--bg),#ffeef6);color:var(--text)}
+    .card{width:min(680px,94vw);padding:36px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,250,252,0.9));box-shadow:0 10px 30px rgba(0,0,0,0.08);text-align:center}
+    h1{margin:0 0 10px;font-size:1.6rem}
+    p.lead{margin:0 0 26px;color:#6a6a76}/* Heart button */
+.heart-wrap{display:inline-block;cursor:pointer;user-select:none}
+.heart{width:120px;height:120px;position:relative;transform:scale(1);transition:transform 200ms ease}
+.heart:before,.heart:after{content:'';position:absolute;top:0;width:60px;height:100px;border-radius:60px 60px 0 0;background:var(--heart);transform-origin:bottom center}
+.heart:before{left:30px;transform:rotate(-45deg)}
+.heart:after{left:0;transform:rotate(45deg)}
+.heart .core{position:absolute;left:0;top:24px;width:120px;height:96px;border-radius:60px;background:var(--heart);clip-path:path('M0 0 H120 V96 Q60 140 0 96 Z');opacity:0}
+
+/* Pulse when active */
+.heart.pulse{animation:pulse 600ms ease}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+/* Small sparkles */
+.sparkle{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--accent);opacity:0;transform:scale(0)}
+.sparkle.show{animation:spark 700ms cubic-bezier(.2,.9,.2,1)}
+@keyframes spark{0%{opacity:1;transform:scale(0)}50%{transform:scale(1.6)}100%{opacity:0;transform:scale(0.2)}}
+
+/* Hidden message */
+.message{margin-top:20px;font-size:1.4rem;letter-spacing:0.8px;opacity:0;transform:translateY(8px);transition:all 360ms cubic-bezier(.2,.9,.2,1)}
+.message.show{opacity:1;transform:translateY(0)}
+
+/* Footer small */
+.small{margin-top:14px;color:#888;font-size:0.9rem}
+
+/* Responsive tweaks */
+@media (max-width:420px){.heart{width:88px;height:88px}.card{padding:20px}}
+
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Click the heart ❤️</h1>
+    <p class="lead">Tap or click the heart below. Something sweet will appear.</p><div class="heart-wrap" id="heartWrap" role="button" aria-label="Click to show message" tabindex="0">
+  <div class="heart" id="heartEl" title="Click me">
+    <div class="core"></div>
+  </div>
+  <!-- sparkles will be injected here -->
+</div>
+
+<div class="message" id="message">I love u K</div>
+<div class="small">Made with 💖 — click again to replay</div>
+
+  </div>  <script>
+    (function(){
+      const heartWrap = document.getElementById('heartWrap');
+      const heart = document.getElementById('heartEl');
+      const message = document.getElementById('message');
+
+      // helper: create sparkles
+      function makeSparkles(count=6){
+        // remove old
+        document.querySelectorAll('.sparkle').forEach(s=>s.remove());
+        const rect = heart.getBoundingClientRect();
+        for(let i=0;i<count;i++){
+          const s = document.createElement('div');
+          s.className='sparkle';
+          document.body.appendChild(s);
+          // place near heart center
+          const angle = (Math.random()*Math.PI*2);
+          const r = 40 + Math.random()*40;
+          const x = rect.left + rect.width/2 + Math.cos(angle)*r;
+          const y = rect.top + rect.height/2 + Math.sin(angle)*r;
+          s.style.left = (x - 5) + 'px';
+          s.style.top = (y - 5) + 'px';
+
+          // delay then show
+          setTimeout(()=>{
+            s.classList.add('show');
+          }, 60*i);
+          // cleanup
+          setTimeout(()=>s.remove(),900);
+        }
+      }
+
+      // show message with simple confetti-ish animation (no external lib)
+      function showMessage(){
+        message.classList.add('show');
+      }
+      function hideMessage(){
+        message.classList.remove('show');
+      }
+
+      // click or keyboard
+      function activate(){
+        // animate heart
+        heart.classList.remove('pulse');
+        void heart.offsetWidth; // reflow to re-run animation
+        heart.classList.add('pulse');
+
+        // tiny scale pop
+        heart.style.transform = 'scale(1)';
+
+        // sparkles
+        makeSparkles(8);
+
+        // reveal message
+        showMessage();
+      }
+
+      heartWrap.addEventListener('click', ()=>{
+        activate();
+      });
+      // keyboard accessibility
+      heartWrap.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          activate();
+        }
+      });
+
+      // Optional: hide message after some seconds so user can replay
+      heartWrap.addEventListener('click', ()=>{
+        setTimeout(()=>{
+          // keep visible for 2.8s then hide
+          hideMessage();
+        },2800);
+      });
+
+      // small micro-interaction on hover (for pointer devices)
+      heartWrap.addEventListener('pointerenter', ()=>heart.style.transform='scale(1.04)');
+      heartWrap.addEventListener('pointerleave', ()=>heart.style.transform='scale(1)');
+
+    })();
+  </script></body>
+</html>
